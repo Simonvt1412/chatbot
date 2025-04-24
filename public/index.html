@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Chat & Hangman</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <h1>Simple Chat & Hangman</h1>
+
+    <!-- Inloggen/Registreren -->
+    <div id="authContainer">
+        <h2>Login</h2>
+        <input id="loginUsername" placeholder="Username" />
+        <input id="loginPassword" type="password" placeholder="Password" />
+        <button onclick="login()">Login</button>
+
+        <h2>Register</h2>
+        <input id="registerUsername" placeholder="Username" />
+        <input id="registerPassword" type="password" placeholder="Password" />
+        <button onclick="register()">Register</button>
+    </div>
+
+    <!-- Chat en Spel -->
+    <div id="chatContainer">
+        <input id="usernameInput" placeholder="Enter your username" disabled />
+        <ul id="messages"></ul>
+        <input id="messageInput" placeholder="Type a message" />
+        <button onclick="sendMessage()">Send</button>
+
+        <!-- Galgje Sectie -->
+        <div id="gameSection">
+            <h2>Hangman Game</h2>
+            <h3>Start a New Game</h3>
+            <input id="player2Input" placeholder="Opponent's username" />
+            <input id="wordInput" placeholder="Word to guess" />
+            <button onclick="startGame()">Start Game</button>
+
+            <h3>Active Games</h3>
+            <div id="gamesList"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const messages = document.getElementById('messages');
+        const usernameInput = document.getElementById('usernameInput');
+        const messageInput = document.getElementById('messageInput');
+        const authContainer = document.getElementById('authContainer');
+        const chatContainer = document.getElementById('chatContainer');
+        const gamesList = document.getElementById('gamesList');
+        let currentUsername = '';
+
+        function register() {
+            const username = document.getElementById('registerUsername').value.trim();
+            const password = document.getElementById('registerPassword').value.trim();
+            if (username && password) {
+                socket.emit('register', { username, password });
+            } else {
+                alert('Vul zowel gebruikersnaam als wachtwoord in!');
+            }
+        }
+
+        function login() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            if (username && password) {
+                socket.emit('login', { username, password });
+            } else {
+                alert('Vul zowel gebruikersnaam als wachtwoord in!');
+            }
+        }
+
+        socket.on('registerResponse', (response) => {
+            alert(response.message);
+        });
+
+        socket.on('loginResponse', (response) => {
+            if (response.success) {
+                authContainer.style.display = 'none';
+                chatContainer.style.display = 'block';
+                currentUsername = document.getElementById('loginUsername').value;
+                usernameInput.value = currentUsername;
+            } else {
+                alert(response.message);
+            }
+        });
+
+        socket.on('error', (message) => {
+            alert(message);
+        });
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                socket.emit('chatMessage', { message });
+                messageInput.value = '';
+            } else {
+                alert('Typ een bericht!');
+            }
+        }
+
+        socket.on('chatMessage', (msg) => {
+            const li = document.createElement('li');
+            const timestamp = msg.timestamp.split('.')[0];
+            li.textContent = `${msg.nickname}: ${msg.message} (${timestamp})`;
+            messages.appendChild(li);
+            messages.scrollTop = messages.scrollHeight;
+        });
+
+        function startGame() {
+            const player2 = document.getElementById('player2Input').value.trim();
+            const word = document.getElementById('wordInput').value.trim();
+            if (player2 && word) {
+                socket.emit('startGame', { player2, word });
+            } else {
+                alert('Vul een tegenstander en een woord in!');
+            }
+        }
+
+        function guessLetter(gameId) {
+            const letterInput = document.getElementById(`letter-${gameId}`);
+            const letter = letterInput.value.trim().toLowerCase();
+            if (letter && letter.length === 1) {
+                socket.emit('guessLetter', { gameId, letter });
+                letterInput.value = '';
+            } else {
+                alert('Voer één letter in!');
+            }
+        }
+
+        socket.on('gameUpdate', (game) => {
+            const word = game.word.split('');
+            const guesses = game.guesses ? game.guesses.split(',') : [];
+            const displayWord = word.map(letter => guesses.includes(letter) ? letter : '_').join(' ');
+            const wrongGuesses = guesses.filter(g => !word.includes(g));
+            const maxWrongGuesses = 6;
+            const remainingGuesses = maxWrongGuesses - wrongGuesses.length;
+
+            let gameHtml = `
+                <div class="game">
+                    <p><strong>Game ${game.id}</strong>: ${game.player1} vs ${game.player2}</p>
+                    <p>Word: ${displayWord}</p>
+                    <p>Wrong Guesses: ${wrongGuesses.join(', ') || 'None'}</p>
+                    <p>Remaining Guesses: ${remainingGuesses}</p>
+                    <p>Status: ${game.status}</p>
+            `;
+            if (game.status === 'active' && game.player2 === currentUsername) {
+                gameHtml += `
+                    <input id="letter-${game.id}" placeholder="Guess a letter" />
+                    <button onclick="guessLetter(${game.id})">Guess</button>
+                `;
+            }
+            if (game.status !== 'active') {
+                gameHtml += `<p>Game Over! ${game.status === 'won' ? 'You won!' : 'You lost! The word was: ' + game.word}</p>`;
+            }
+            gameHtml += `</div>`;
+
+            // Voeg het spel toe aan de lijst of werk het bij
+            let gameElement = document.getElementById(`game-${game.id}`);
+            if (!gameElement) {
+                gameElement = document.createElement('div');
+                gameElement.id = `game-${game.id}`;
+                gamesList.appendChild(gameElement);
+            }
+            gameElement.innerHTML = gameHtml;
+        });
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

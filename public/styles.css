@@ -1,0 +1,154 @@
+/* Algemene stijlen */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+
+h1, h2, h3 {
+    color: #2c3e50;
+    text-align: center;
+}
+
+input, button {
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+/* Inloggen/Registreren Sectie */
+#authContainer {
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#authContainer h2 {
+    margin-top: 0;
+}
+
+#authContainer input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Chat Sectie */
+#chatContainer {
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#usernameInput {
+    width: 100%;
+    background-color: #ecf0f1;
+    border: none;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+}
+
+#messages {
+    list-style-type: none;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+#messages li {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    word-wrap: break-word;
+}
+
+#messages li:last-child {
+    border-bottom: none;
+}
+
+#messageInput {
+    width: calc(100% - 90px);
+    margin-right: 10px;
+}
+
+/* Galgje Sectie */
+#gameSection {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #ecf0f1;
+    border-radius: 5px;
+}
+
+#gameSection h2, #gameSection h3 {
+    margin: 10px 0;
+}
+
+#player2Input, #wordInput {
+    width: calc(50% - 30px);
+}
+
+.game {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.game p {
+    margin: 5px 0;
+}
+
+.game input {
+    width: calc(100% - 90px);
+    margin-right: 10px;
+}
+
+/* Responsieve aanpassingen */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    #authContainer, #chatContainer {
+        padding: 15px;
+    }
+
+    #player2Input, #wordInput {
+        width: 100%;
+    }
+
+    #messageInput, .game input {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    button {
+        width: 100%;
+    }
+}
